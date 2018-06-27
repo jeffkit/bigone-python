@@ -36,9 +36,9 @@ if you don't like the python object-like style data accessing, you can simply us
 {'uuid': 'd2185614-50c3-4588-b146-b8afe7534da6', 'quoteScale': 8, 'quoteAsset': {'uuid': '0df9c3c3-255a-46d7-ab82-dedae169fba9', 'symbol': 'BTC', 'name': 'Bitcoin'}, 'name': 'BTG-BTC', 'baseScale': 4, 'baseAsset': {'uuid': '5df3b155-80f5-4f5a-87f6-a92950f0d0ff', 'symbol': 'BTG', 'name': 'Bitcoin Gold'}}
 ```
 
-## API List
+## API List
 
-### Public API:
+### Public API
 
 #### ping
 
@@ -100,7 +100,7 @@ cli.order_detail(12232)
 #### create_order
 
 ```python
-cli.create_order(market_id='ETH-BTC', side='BID', price=0.12, amount=2)
+cli.create_order(market_id='ETH-BTC', side='BID', price='0.12', amount='2')
 ```
 
 #### cancel_order
