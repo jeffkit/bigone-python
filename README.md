@@ -68,7 +68,7 @@ cli.get_order_book('ETH-BTC')
 #### get_trades
 
 ```python
-cli.get_trades()
+cli.get_trades('ETH-BTC')
 ```
 
 #### get_markets
@@ -88,7 +88,7 @@ cli.account_info()
 #### get_orders
 
 ```python
-cli.get_orders(side='BID', state='CANCELLED')
+cli.get_orders('ETH-BTC', side='BID', state='CANCELLED')
 ```
 
 #### order_detail
@@ -118,7 +118,7 @@ cli.cancel_all_order()
 #### my_trades
 
 ```python
-cli.my_trades()
+cli.my_trades('ETH-BTC')
 ```
 
 #### withdrawals
