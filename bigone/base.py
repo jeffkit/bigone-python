@@ -1,6 +1,17 @@
+import logging
 import time
+import sys
+import os
+
 import jwt
 import requests
+import six
+
+
+LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
+LOG_FORMAT = '[%(levelname)s]%(asctime)-15s %(filename)s %(lineno)d: %(message)s'
+logging.basicConfig(format=LOG_FORMAT, level=LOG_LEVEL)
+log = logging.getLogger(__name__)
 
 
 class BigObject(object):
@@ -24,10 +35,27 @@ class BigObject(object):
     
     def __dir__(self):
         return self._origin.keys()
-    
+
     def __repr__(self):
+        if six.PY2:
+            values = []
+            for k, v in self._origin.items():
+                k = k.encode('utf-8')
+                if six.PY2 and isinstance(v, unicode):
+                    v = v.encode('utf-8')
+                else:
+                    v = repr(v)
+                values.append('%s: %s' % (k, v))
+            values = ','.join(values)
+            return '<%s (%s)>' % (self._name.encode('utf-8'), values)
         values = ','.join(['%s: %s' % (k, v) for k,v in self._origin.items()])
         return '<%s (%s)>' % (self._name, values)
+    
+    def __str__(self):
+        return repr(self)
+    
+    def __unicode__(self):
+        return repr(self).decode('utf-8')
 
 
 class PaginatedResult(object):
@@ -105,13 +133,19 @@ class BigOneRequestException(Exception):
 
 class Request(object):
 
-    def __init__(self, api, secret, entry_point, limit_rate,
-                 limiter, raw_response):
+    def __init__(self, api, secret, entry_point='https://big.one/api/v2/',
+                 limit_rate=True, limiter=None, raw_response=False):
+        if not entry_point.endswith('/'):
+            entry_point = entry_point + '/'
         self.api = api
         self.secret = secret
         self.entry_point = entry_point
         self.limit_rate = limit_rate
         self.raw_response = raw_response
+        self.ping()
+    
+    def ping(self):
+        return self.public_get('ping')
 
     @property
     def header(self):
@@ -123,21 +157,25 @@ class Request(object):
                      parameters=None, headers=None):
         url = self.entry_point + url
         url = url.strip()
+        log.info('sending request : %s' % url)
         if method == 'GET':
             rsp = requests.get(url, params=parameters, headers=headers)
         elif method == 'POST':
             rsp = requests.post(url, data=parameters, headers=headers)
         else:
-            raise ValueError('unsuport HTTP method %s' % method)
+            log.error('unsupport request method : %s' % method)
+            raise ValueError('unsupport HTTP method %s' % method)
         if str(rsp.status_code).startswith('2'):
             data = rsp.json()
+            log.debug('reponse data:')
+            log.debug(data)
             ret = None
             if 'errors' in data:
-                print(data)
                 error = data['errors'][0]
                 if 'code' in error:
                     raise BigOneAPIException(error['code'], error['message'])
                 elif 'message' in error:
+                    log.warning('error respone without code, b1 making mistake')
                     raise BigOneAPIException(-1, error['message'])
                 else:
                     raise BigOneRequestException(
@@ -145,14 +183,19 @@ class Request(object):
                     )
                     
             elif 'data' in data:
+                log.debug('success response')
                 ret = data['data']
             else:
+                log.debug('not a regular response')
                 ret = data
             
             if self.raw_response:
+                log.info('raw_response enable')
                 return ret
             if 'edges' not in ret and not isinstance(ret, list):
+                log.debug('The result is a dict')
                 return BigObject(ret, result_type)
+            log.debug('The result is a list')
             return PaginatedResult(ret, result_type)
 
         else:
