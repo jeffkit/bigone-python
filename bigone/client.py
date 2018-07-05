@@ -25,7 +25,8 @@ class BigOneClient(Request):
     def account_info(self):
         return self.private_get('viewer/accounts', 'Account')
     
-    def get_orders(self, market_id, side=None, state=None, **page_options):
+    def get_orders(self, market_id=None, side=None, state=None, 
+            **page_options):
         params = {
             'side': side,
             'state': state,
@@ -51,7 +52,7 @@ class BigOneClient(Request):
     def cancel_all_order(self):
         return self.private_post('viewer/orders/cancel_all', 'Order')
     
-    def my_trades(self, market_id, **page_options):
+    def my_trades(self, market_id=None, **page_options):
         params = {
             'market_id': market_id
         }.update(page_options)
