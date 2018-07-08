@@ -31,7 +31,8 @@ class BigOneClient(Request):
             'side': side,
             'state': state,
             'market_id': market_id
-        }.update(page_options)
+        }
+        params.update(page_options)
         return self.private_get('viewer/orders', 'Order', params)
     
     def order_detail(self, order_id):
@@ -55,7 +56,8 @@ class BigOneClient(Request):
     def my_trades(self, market_id=None, **page_options):
         params = {
             'market_id': market_id
-        }.update(page_options)
+        }
+        params.update(page_options)
         return self.private_get('viewer/trades', 'Trade', params)
 
     def withdrawals(self, **page_options):
